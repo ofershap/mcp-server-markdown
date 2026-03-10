@@ -18,6 +18,10 @@ npx mcp-server-markdown
 
 <sub>Demo built with <a href="https://github.com/ofershap/remotion-readme-kit">remotion-readme-kit</a></sub>
 
+<a href="https://glama.ai/mcp/servers/ofershap/mcp-server-markdown">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/ofershap/mcp-server-markdown/badge" alt="mcp-server-markdown MCP server" />
+</a>
+
 ## Why
 
 Tools like Context7 are great for looking up library docs from npm, but they don't help with your own documentation. Project wikis, internal knowledge bases, architecture decision records, onboarding guides: they all live as markdown files in your repo or on disk. The filesystem MCP server can read those files, but it treats them as raw text. It doesn't understand headings, sections, or code blocks. This server does. Point it at a directory and your assistant can search across all your docs, pull out a specific section by heading, list the table of contents, or find every TypeScript code example in your knowledge base.
