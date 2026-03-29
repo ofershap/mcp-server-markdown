@@ -33,6 +33,10 @@ Tools like Context7 are great for looking up library docs from npm, but they don
 | `find_code_blocks` | Find fenced code blocks, optionally filter by language (e.g. typescript)   |
 | `get_frontmatter`  | Parse YAML frontmatter metadata at the start of a file                     |
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/ofershap-mcp-server-markdown).
+
 ## Quick Start
 
 ### Cursor
