@@ -1,0 +1,96 @@
+schema: spec-driven
+
+context: |
+  ## Project
+  mcp-server-markdown — an MCP server (Model Context Protocol) for working with markdown files.
+  Provides tools: list_files, search_docs, get_section, list_headings, find_code_blocks, get_frontmatter.
+  Transport: stdio. Published as npm package "mcp-server-markdown".
+
+  ## Tech stack
+  - Language: TypeScript (ESM, strict mode, noUncheckedIndexedAccess — indexed access returns T | undefined)
+  - Runtime: Node.js LTS (target: node20 / ES2022)
+  - Package manager: pnpm
+  - MCP SDK: @modelcontextprotocol/sdk (McpServer, StdioServerTransport)
+  - Schema validation: Zod
+  - Build: tsup (ESM only) → dist/
+  - Tests: vitest (node environment, v8 coverage provider)
+  - Linting: eslint (typescript-eslint strict + stylistic) + prettier
+  - Git hooks: husky + lint-staged
+
+  ## Repository structure
+  - src/index.ts — MCP server entry point; registers all tools via server.tool()
+  - src/markdown.ts — core logic functions (exported, tested independently)
+  - tests/markdown.test.ts — vitest unit tests using temp directories
+  - server.json — MCP server manifest (name, version, transport config)
+  - package.json — project metadata, scripts, dependencies
+  - tsconfig.json — TypeScript config (strict, noUncheckedIndexedAccess: true)
+  - tsup.config.ts — build config (ESM, node20, sourcemap, shebang banner)
+  - vitest.config.ts — test config (node env, v8 coverage on src/**)
+  - eslint.config.js — lint rules (strict + stylistic, ignores dist/ and coverage/)
+  - .prettierrc.json — formatting (semi, double quotes, trailing commas, printWidth 80, tabWidth 2)
+  - .husky/ — git hooks (pre-commit runs lint-staged)
+  - dist/ — build output (gitignored)
+  - skills/markdown-search/ — Copilot CLI skill for using the MCP server
+  - .github/workflows/ci.yml — CI pipeline: lint → typecheck → build → test (Node 20, 22)
+  - .github/workflows/release.yml — release pipeline
+  - .github/prompts/ — OpenSpec prompt files
+  - .github/skills/ — OpenSpec skill definitions (propose, apply-change, explore, archive-change)
+  - openspec/ — spec-driven workflow artifacts (this directory)
+
+  ## Code style conventions
+  - All imports use .js extension (ESM requirement)
+  - Double quotes, semicolons, trailing commas (enforced by prettier)
+  - Functions in src/markdown.ts are exported async functions
+  - Tools are registered in src/index.ts with server.tool(name, description, zodSchema, handler)
+  - Tool handlers resolve paths with path.resolve() before use
+  - Zod schemas are defined inline in server.tool() calls with .describe() on every field
+  - Return format for tools: { content: [{ type: "text", text }] }
+  - Tests use beforeEach/afterEach with fs.mkdtemp() for isolated temp directories
+  - TypeScript strict mode: always check for undefined after indexed access (arrays, objects)
+
+  ## Quality gate (CI order)
+  1. pnpm run lint (eslint + prettier)
+  2. pnpm run typecheck (tsc --noEmit)
+  3. pnpm run build (tsup)
+  4. pnpm run test (vitest run)
+
+  ## Common change patterns
+  ### Adding a new tool
+  1. Implement the logic function in src/markdown.ts (export async function)
+  2. Register the tool in src/index.ts with server.tool(name, desc, zodSchema, handler)
+  3. Add vitest tests in tests/markdown.test.ts
+  4. Run quality gate to verify
+
+  ### Modifying an existing tool
+  1. Update the logic function in src/markdown.ts
+  2. Update the tool registration in src/index.ts if signature or description changes
+  3. Update/add tests to cover the changed behavior
+  4. Run quality gate — ensure no regressions in existing tests
+
+  ### Adding non-tool functionality
+  1. Add new module in src/ or extend src/markdown.ts
+  2. Wire into src/index.ts if it affects server behavior
+  3. Add tests covering the new functionality
+  4. Run quality gate to verify
+
+rules:
+  proposal:
+    - Keep proposals focused on a single coherent change (new tool, feature modification, or enhancement)
+    - Always include problem statement, proposed approach, input/output contract, and edge cases
+    - Include a "Non-goals" section to define scope boundaries
+    - Reference existing code in src/ for consistent naming, style, and patterns
+    - Consider robustness: what happens with invalid input, missing files, empty results, large data
+  spec:
+    - Define exact function signatures for src/markdown.ts
+    - Define exact server.tool() registration for src/index.ts (if applicable)
+    - Specify Zod input schema fields with .describe() for every parameter
+    - List all edge cases: file not found, empty results, invalid input, large files, malformed content
+    - Specify return format consistent with existing tools
+    - Include security considerations: path traversal, input sanitization, resource limits
+  tasks:
+    - Break implementation into atomic steps: (1) logic, (2) integration/registration, (3) tests, (4) quality gate
+    - Each task must be independently verifiable
+    - Include a task for running the full quality gate (lint, typecheck, build, test) to confirm no regressions
+    - Tests must cover happy path, empty/missing input, invalid input, and edge cases from the spec
+    - Include edge-case tests for robustness: malformed data, boundary values, large inputs
+    - Include a code review step to verify correctness and style consistency before finalizing
