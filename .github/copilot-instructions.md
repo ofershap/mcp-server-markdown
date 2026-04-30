@@ -42,16 +42,13 @@ package.json        # Scripts: build, test, lint, typecheck, format
 ## Code Style Conventions
 
 ### Imports
-
 - All local imports use `.js` extension (ESM requirement): `import { foo } from "./bar.js";`
 - Node built-ins use `node:` prefix: `import fs from "node:fs/promises";`
 
 ### Formatting (enforced by prettier)
-
 - Double quotes, semicolons, trailing commas, `printWidth: 80`, `tabWidth: 2`
 
 ### TypeScript strictness
-
 - `noUncheckedIndexedAccess: true` — array/object indexed access returns `T | undefined`
 - Always check for undefined before using indexed values:
   ```typescript
@@ -62,7 +59,6 @@ package.json        # Scripts: build, test, lint, typecheck, format
 ### Tool implementation pattern
 
 **Step 1 — Logic function in `src/markdown.ts`:**
-
 ```typescript
 export async function myToolLogic(
   directory: string,
@@ -79,7 +75,6 @@ export async function myToolLogic(
 ```
 
 **Step 2 — Register in `src/index.ts`:**
-
 ```typescript
 server.tool(
   "my_tool_name",
@@ -98,7 +93,6 @@ server.tool(
 ```
 
 **Key conventions:**
-
 - `path.resolve()` on all file/directory inputs before use
 - Zod schemas inline with `.describe()` on every field
 - Return format: `{ content: [{ type: "text" as const, text }] }`
@@ -121,21 +115,18 @@ All four steps must pass. On failure: diagnose the error, fix the code, and reru
 ## Change Patterns
 
 ### Pattern A — Adding a new tool
-
 1. Add exported async function to `src/markdown.ts`
 2. Register with `server.tool()` in `src/index.ts` (import the new function)
 3. Add tests in `tests/markdown.test.ts` (see test conventions below)
 4. Run quality gate
 
 ### Pattern B — Modifying an existing tool
-
 1. Update the logic function in `src/markdown.ts`
 2. Update `server.tool()` in `src/index.ts` if description or schema changes
 3. Update or add tests — ensure existing tests still pass
 4. Run quality gate
 
 ### Pattern C — Other changes (refactor, new module, non-tool feature)
-
 1. Identify what files are affected
 2. Make minimal, focused changes
 3. Add or update tests as appropriate
@@ -159,11 +150,11 @@ All four steps must pass. On failure: diagnose the error, fix the code, and reru
 
 ## Existing MCP Tools (for reference)
 
-| Tool               | Description                                                |
-| ------------------ | ---------------------------------------------------------- |
-| `list_files`       | List all `.md` files in a directory recursively            |
-| `search_docs`      | Full-text search across all `.md` files (up to 50 results) |
-| `get_section`      | Extract a section by heading from a single file            |
-| `list_headings`    | List all headings as a table of contents                   |
-| `find_code_blocks` | Find fenced code blocks, optionally filter by language     |
-| `get_frontmatter`  | Parse YAML frontmatter metadata from a file                |
+| Tool | Description |
+|---|---|
+| `list_files` | List all `.md` files in a directory recursively |
+| `search_docs` | Full-text search across all `.md` files (up to 50 results) |
+| `get_section` | Extract a section by heading from a single file |
+| `list_headings` | List all headings as a table of contents |
+| `find_code_blocks` | Find fenced code blocks, optionally filter by language |
+| `get_frontmatter` | Parse YAML frontmatter metadata from a file |

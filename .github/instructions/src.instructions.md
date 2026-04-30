@@ -12,7 +12,6 @@ applyTo: "src/**"
 ## Adding Logic (`src/markdown.ts`)
 
 ### Function signature template
-
 ```typescript
 export async function myFunction(
   param: string,
@@ -24,14 +23,12 @@ export async function myFunction(
 ```
 
 ### Mandatory conventions
-
 - Use `path.resolve()` on every user-supplied file or directory path
 - All file I/O uses `node:fs/promises` (async — never sync)
 - All imports use `.js` extension: `import { foo } from "./bar.js";`
 - Node built-ins use `node:` prefix: `import path from "node:path";`
 
 ### `noUncheckedIndexedAccess` — required patterns
-
 TypeScript is configured with `noUncheckedIndexedAccess: true`. Any array or object index returns `T | undefined`. Always guard:
 
 ```typescript
@@ -50,7 +47,6 @@ const val = obj.key ?? defaultValue;
 ```
 
 ### Error handling
-
 - Validate directory inputs: `if (!stat.isDirectory()) throw new Error(...)`
 - Per-file errors in scans: catch and `continue` — one bad file must not abort the whole scan
 - Let errors from a single-file function propagate naturally (MCP SDK catches them)
@@ -58,7 +54,6 @@ const val = obj.key ?? defaultValue;
 ## Registering a Tool (`src/index.ts`)
 
 ### Template
-
 ```typescript
 server.tool(
   "snake_case_name",
@@ -76,23 +71,19 @@ server.tool(
     const absDir = path.resolve(directory);
     const results = await myFunction(absDir, optionalField);
     const text =
-      results.length > 0
-        ? JSON.stringify({ results }, null, 2)
-        : "(no results)";
+      results.length > 0 ? JSON.stringify({ results }, null, 2) : "(no results)";
     return { content: [{ type: "text" as const, text }] };
   },
 );
 ```
 
 ### Zod schema rules
-
 - Every field MUST have `.describe()`
 - Optional fields use `.optional()` after the type: `z.string().optional()`
 - Boolean flags: `z.boolean().optional().describe("...")`
 - Arrays: `z.array(z.string()).optional().describe("...")`
 
 ### Return format
-
 - Always: `{ content: [{ type: "text" as const, text }] }`
 - `type: "text" as const` is required (TypeScript const assertion)
 - For structured data: `JSON.stringify(obj, null, 2)`
@@ -100,12 +91,10 @@ server.tool(
 - For empty results: use a descriptive string like `"(no results)"` or `"(no matches)"`
 
 ### Import new functions
-
 Add the function name to the import at the top of `index.ts`:
-
 ```typescript
 import {
   existingFunction,
-  myNewFunction, // add here
+  myNewFunction,  // add here
 } from "./markdown.js";
 ```

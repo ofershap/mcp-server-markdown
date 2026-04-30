@@ -7,13 +7,6 @@ export interface SearchResult {
   content: string;
 }
 
-export interface TodoItem {
-  file: string;
-  line: number;
-  marker: string;
-  text: string;
-}
-
 export interface Heading {
   level: number;
   text: string;
@@ -217,73 +210,4 @@ export async function getFrontmatter(
     }
   }
   return Object.keys(result).length > 0 ? result : null;
-}
-
-const DEFAULT_MARKERS = ["TODO", "FIXME", "NOTE"];
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-export async function findTodos(
-  directory: string,
-  options?: { markers?: string[]; caseSensitive?: boolean },
-): Promise<TodoItem[]> {
-  const absDir = path.resolve(directory);
-  const stat = await fs.stat(absDir);
-  if (!stat.isDirectory()) {
-    throw new Error(`Not a directory: ${directory}`);
-  }
-
-  const markers = options?.markers ?? DEFAULT_MARKERS;
-  const caseSensitive = options?.caseSensitive ?? false;
-  const flags = caseSensitive ? "g" : "gi";
-
-  // Empty markers list → no matches possible
-  if (markers.length === 0) return [];
-
-  // Build one combined regex that alternates all markers as whole-word alternatives
-  const pattern = markers.map(escapeRegExp).join("|");
-  const markerRe = new RegExp(`\\b(${pattern})\\b`, flags);
-
-  const relFiles = await listMarkdownFiles(absDir);
-  const results: TodoItem[] = [];
-
-  for (const relFile of relFiles) {
-    const absFile = path.join(absDir, relFile);
-    try {
-      const content = await fs.readFile(absFile, "utf-8");
-      const lines = content.split("\n");
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line === undefined) continue;
-
-        // Reset lastIndex for global regex reuse across lines
-        markerRe.lastIndex = 0;
-        let match: RegExpExecArray | null;
-        while ((match = markerRe.exec(line)) !== null) {
-          const matchedMarker = match[1];
-          if (matchedMarker === undefined) continue;
-
-          // Extract text after the marker: strip optional leading colon then trim
-          const afterMarker = line.slice(
-            (match.index ?? 0) + matchedMarker.length,
-          );
-          const text = afterMarker.replace(/^\s*:\s*/, "").trim();
-
-          results.push({
-            file: relFile,
-            line: i + 1,
-            marker: matchedMarker,
-            text,
-          });
-        }
-      }
-    } catch {
-      // skip unreadable files
-    }
-  }
-
-  return results;
 }

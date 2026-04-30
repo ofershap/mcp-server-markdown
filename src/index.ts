@@ -9,7 +9,6 @@ import {
   listHeadings,
   findCodeBlocks,
   getFrontmatter,
-  findTodos,
 } from "./markdown.js";
 
 const server = new McpServer({
@@ -125,34 +124,6 @@ server.tool(
     return {
       content: [{ type: "text" as const, text: lines.join("\n") }],
     };
-  },
-);
-
-server.tool(
-  "find_todos",
-  "Scan all .md files in a directory recursively and return lines containing annotation markers (TODO, FIXME, NOTE by default) as structured JSON. Supports custom markers and case-sensitive matching.",
-  {
-    directory: z
-      .string()
-      .describe("Path to the directory to scan (e.g. ./docs)"),
-    markers: z
-      .array(z.string())
-      .optional()
-      .describe(
-        'Optional: markers to look for (default: ["TODO", "FIXME", "NOTE"]). Overrides the default list entirely.',
-      ),
-    caseSensitive: z
-      .boolean()
-      .optional()
-      .describe(
-        "Optional: case-sensitive matching (default false). When false, marker field reflects actual casing found.",
-      ),
-  },
-  async ({ directory, markers, caseSensitive }) => {
-    const absDir = path.resolve(directory);
-    const items = await findTodos(absDir, { markers, caseSensitive });
-    const text = JSON.stringify({ items });
-    return { content: [{ type: "text" as const, text }] };
   },
 );
 
