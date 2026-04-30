@@ -1,7 +1,6 @@
 ## Context
 
 GitHub Copilot CLI resolves slash commands from two locations:
-
 - **Prompts**: `.github/prompts/<name>.prompt.md` → invoked as `/<name> [args]`
 - **Skills**: `.github/skills/<name>/SKILL.md` → invoked as `/<name> [args]`
 
@@ -14,14 +13,12 @@ The `solve` skill (`.github/skills/solve/SKILL.md`) was implemented first but is
 ## Goals / Non-Goals
 
 **Goals:**
-
 - Create `.github/prompts/solve.prompt.md` with the correct prompt front-matter format (`description:` only)
 - Embed the complete pipeline: read task → explore codebase → plan (SQL todos + plan.md) → implement → rubber-duck review → quality gate → report
 - Delete `.github/skills/solve/SKILL.md` to avoid duplicate/conflicting entry points
 - No `openspec` CLI dependency in the prompt
 
 **Non-Goals:**
-
 - Changing the pipeline logic itself (that is covered by `copilot-cli-native-workflow`)
 - Modifying `.github/copilot-instructions.md` or instruction files
 - Touching product code (`src/`, `tests/`)
@@ -29,13 +26,11 @@ The `solve` skill (`.github/skills/solve/SKILL.md`) was implemented first but is
 ## Decisions
 
 ### Decision: Prompt format over skill format
-
 **Choice:** `.github/prompts/solve.prompt.md` with minimal front-matter (`description:` only).
 
 **Rationale:** This is the exact pattern the repo already uses for all slash command entry points (`opsx-apply.prompt.md`, `opsx-propose.prompt.md`, etc.). It maps 1:1 to the `/solve @task.md` invocation syntax. Skills are for sub-workflows that prompts delegate to — not for top-level slash commands.
 
 ### Decision: Delete the skill file
-
 **Choice:** Remove `.github/skills/solve/SKILL.md` after the prompt is created.
 
 **Rationale:** Two files defining the same `/solve` entry point creates ambiguity about which one Copilot CLI picks up. Removing the skill eliminates the conflict and keeps the repo clean.

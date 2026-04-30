@@ -11,7 +11,6 @@ applyTo: "tests/**"
 ## Test Structure
 
 ### File layout
-
 ```typescript
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs/promises";
@@ -40,7 +39,6 @@ describe("myFunction", () => {
 ```
 
 ### Key conventions
-
 - Always use `beforeEach` + `afterEach` with `fs.mkdtemp()` for full isolation
 - Always clean up with `fs.rm(tmpDir, { recursive: true, force: true })`
 - Imports use `.js` extension: `from "../src/markdown.js"`
@@ -50,7 +48,6 @@ describe("myFunction", () => {
 ## Required Coverage for Every New Function
 
 ### 1. Happy path
-
 The normal case with valid input — does it return the expected result?
 
 ```typescript
@@ -58,14 +55,11 @@ it("returns results for valid directory", async () => {
   await fs.writeFile(path.join(tmpDir, "doc.md"), "# Heading\n\nContent");
   const results = await myFunction(tmpDir);
   expect(results).toHaveLength(1);
-  expect(results[0]).toMatchObject({
-    /* expected fields */
-  });
+  expect(results[0]).toMatchObject({ /* expected fields */ });
 });
 ```
 
 ### 2. Empty results
-
 When input is valid but matches nothing:
 
 ```typescript
@@ -77,7 +71,6 @@ it("returns empty array when no matches", async () => {
 ```
 
 ### 3. Invalid / missing input
-
 Directory that doesn't exist or isn't a directory:
 
 ```typescript
@@ -107,7 +100,7 @@ it("scans subdirectories recursively", async () => {
   await fs.mkdir(path.join(tmpDir, "sub"));
   await fs.writeFile(path.join(tmpDir, "sub", "nested.md"), "# Nested");
   const results = await myFunction(tmpDir);
-  expect(results.some((r) => r.file.includes("nested.md"))).toBe(true);
+  expect(results.some(r => r.file.includes("nested.md"))).toBe(true);
 });
 
 // Multiple files
@@ -122,32 +115,27 @@ it("processes multiple files", async () => {
 it("ignores non-markdown files", async () => {
   await fs.writeFile(path.join(tmpDir, "data.json"), '{"key":"value"}');
   const results = await myFunction(tmpDir);
-  expect(results.every((r) => r.file.endsWith(".md"))).toBe(true);
+  expect(results.every(r => r.file.endsWith(".md"))).toBe(true);
 });
 ```
 
 ### 5. Robustness / security edge cases (where applicable)
 
-````typescript
+```typescript
 // Malformed content
 it("handles malformed markdown without throwing", async () => {
-  await fs.writeFile(
-    path.join(tmpDir, "malformed.md"),
-    "```\nunclosed code block",
-  );
+  await fs.writeFile(path.join(tmpDir, "malformed.md"), "```\nunclosed code block");
   await expect(myFunction(tmpDir)).resolves.toBeDefined();
 });
 
 // Large content
 it("handles files with many items", async () => {
-  const lines = Array.from({ length: 100 }, (_, i) => `# Heading ${i}`).join(
-    "\n",
-  );
+  const lines = Array.from({ length: 100 }, (_, i) => `# Heading ${i}`).join("\n");
   await fs.writeFile(path.join(tmpDir, "large.md"), lines);
   const results = await myFunction(tmpDir);
   expect(results.length).toBeGreaterThan(0);
 });
-````
+```
 
 ## Test Naming Conventions
 
@@ -158,12 +146,12 @@ it("handles files with many items", async () => {
 ## Vitest Matchers Quick Reference
 
 ```typescript
-expect(value).toBe(exact); // strict equality
-expect(value).toEqual(deep); // deep equality
-expect(value).toMatchObject(partial); // partial match
-expect(value).toHaveLength(n);
-expect(value).toContain(item);
-expect(value).toBeGreaterThan(n);
-expect(fn).rejects.toThrow(); // async error
-expect(fn).resolves.toBeDefined(); // async success
+expect(value).toBe(exact)             // strict equality
+expect(value).toEqual(deep)           // deep equality
+expect(value).toMatchObject(partial)  // partial match
+expect(value).toHaveLength(n)
+expect(value).toContain(item)
+expect(value).toBeGreaterThan(n)
+expect(fn).rejects.toThrow()          // async error
+expect(fn).resolves.toBeDefined()     // async success
 ```
