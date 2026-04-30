@@ -20,6 +20,7 @@ Implement the task described in the provided file, end-to-end, autonomously.
 ## Step 1 — Read and Analyse the Task
 
 Read the task file provided as input (`@task.md`). Extract:
+
 - What needs to be built or changed
 - The name of the new tool, function, or feature (if any)
 - Required input/output contracts
@@ -27,6 +28,7 @@ Read the task file provided as input (`@task.md`). Extract:
 - Any examples provided
 
 Determine the **change type**:
+
 - **new-tool**: Task asks to add a new MCP tool → use Pattern A from `.github/copilot-instructions.md`
 - **modification**: Task asks to change an existing tool or function → use Pattern B
 - **other**: Any other change → use Pattern C
@@ -41,7 +43,8 @@ If the task file is missing or unreadable, report the error and stop — make no
 
 ### 2a. Explore the codebase
 
-Use the `explore` agent (via the task tool with `agent_type: "explore"`, `model: "claude-sonnet-4.6"`) to read:
+Use the `explore` agent (via the task tool with `agent_type: "explore"`, `model: "claude-haiku-4.5"`) to read:
+
 - `src/markdown.ts` — existing logic functions, patterns, types
 - `src/index.ts` — existing tool registrations, import style, return format
 
@@ -95,11 +98,13 @@ Do not write any product code until all todos are inserted.
 ## Step 3 — Implementation
 
 Work through each SQL todo in order. Before starting each:
+
 ```sql
 UPDATE todos SET status = 'in_progress' WHERE id = '<id>';
 ```
 
 After completing each:
+
 ```sql
 UPDATE todos SET status = 'done' WHERE id = '<id>';
 ```
@@ -124,6 +129,7 @@ export async function myFunction(
 ```
 
 Key rules (from `.github/copilot-instructions.md`):
+
 - All imports use `.js` extension
 - `path.resolve()` on every user-supplied path
 - `noUncheckedIndexedAccess`: guard every array/object index access (`if (val === undefined) continue`)
@@ -142,7 +148,8 @@ server.tool(
   async ({ directory, optionalFlag }) => {
     const absDir = path.resolve(directory);
     const results = await myFunction(absDir, optionalFlag);
-    const text = results.length > 0 ? JSON.stringify({ results }) : "(no results)";
+    const text =
+      results.length > 0 ? JSON.stringify({ results }) : "(no results)";
     return { content: [{ type: "text" as const, text }] };
   },
 );
@@ -153,6 +160,7 @@ Add the new function to the import at the top of `index.ts`.
 ### Task: Write tests (`tests/markdown.test.ts`)
 
 Follow `.github/instructions/tests.instructions.md`. Required test coverage:
+
 1. **Happy path** — valid input, expected results returned
 2. **Empty results** — valid input but nothing matches
 3. **Invalid input** — non-existent directory, file path instead of directory
@@ -166,6 +174,7 @@ Follow `.github/instructions/tests.instructions.md`. Required test coverage:
 After all implementation todos are `done`, use the `rubber-duck` agent (via task tool with `agent_type: "rubber-duck"`, `model: "gpt-5.4"`) to review the changes.
 
 Provide the rubber-duck agent with:
+
 - The task requirements (from the task file)
 - The plan (from `plan.md`)
 - The new function in `src/markdown.ts`
@@ -173,6 +182,7 @@ Provide the rubber-duck agent with:
 - The new tests in `tests/markdown.test.ts`
 
 Ask it to check:
+
 - Does the implementation match **all** task rules and constraints?
 - Are all edge cases handled correctly?
 - Any TypeScript type safety issues (`noUncheckedIndexedAccess`)?
@@ -194,6 +204,7 @@ pnpm run test
 ```
 
 All four steps must pass. If any step fails:
+
 1. Read the full error output
 2. Fix the root cause (lint errors, type errors, test failures)
 3. Rerun the quality gate from the beginning
@@ -235,18 +246,21 @@ When the quality gate passes, produce this summary:
 ## Reference: Change Patterns
 
 ### Pattern A — Adding a new tool
+
 1. Implement exported async function in `src/markdown.ts`
 2. Register with `server.tool()` in `src/index.ts`, add to imports
 3. Add tests in `tests/markdown.test.ts`
 4. Run quality gate
 
 ### Pattern B — Modifying an existing tool
+
 1. Update the logic function in `src/markdown.ts`
 2. Update `server.tool()` in `src/index.ts` if description/schema changed
 3. Update/add tests — ensure pre-existing tests still pass
 4. Run quality gate
 
 ### Pattern C — Other change
+
 1. Identify affected files
 2. Make minimal, focused changes
 3. Add or update tests as appropriate

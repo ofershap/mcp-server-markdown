@@ -9,6 +9,7 @@ import {
   listHeadings,
   findCodeBlocks,
   getFrontmatter,
+  findTodos,
 } from "../src/markdown.js";
 
 const SAMPLE_MD = `---
@@ -218,5 +219,215 @@ describe("getFrontmatter", () => {
     );
     const fm = await getFrontmatter(path.join(tmpDir, "plain.md"));
     expect(fm).toBeNull();
+  });
+});
+
+describe("findTodos", () => {
+  it("finds TODO, FIXME, NOTE by default", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "guide.md"),
+      [
+        "<!-- TODO: update screenshot -->",
+        "FIXME: broken link here",
+        "NOTE: see documentation",
+        "Nothing here",
+      ].join("\n"),
+    );
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(3);
+
+    const todo = items[0];
+    expect(todo).toBeDefined();
+    if (todo) {
+      expect(todo.file).toBe("guide.md");
+      expect(todo.line).toBe(1);
+      expect(todo.marker).toBe("TODO");
+      expect(todo.text).toBe("update screenshot -->");
+    }
+
+    const fixme = items[1];
+    expect(fixme).toBeDefined();
+    if (fixme) {
+      expect(fixme.marker).toBe("FIXME");
+      expect(fixme.text).toBe("broken link here");
+    }
+
+    const note = items[2];
+    expect(note).toBeDefined();
+    if (note) {
+      expect(note.marker).toBe("NOTE");
+      expect(note.text).toBe("see documentation");
+    }
+  });
+
+  it("does not match marker as part of a longer word", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "notes.md"),
+      "This is notable\nTODOS: not a match\nTODO: this matches",
+    );
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item).toBeDefined();
+    if (item) expect(item.marker).toBe("TODO");
+  });
+
+  it("returns empty array when no markers found", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "clean.md"),
+      "# Clean doc\n\nNo annotations here.",
+    );
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(0);
+  });
+
+  it("throws for non-existent directory", async () => {
+    await expect(findTodos("/nonexistent/path")).rejects.toThrow();
+  });
+
+  it("throws for file path instead of directory", async () => {
+    await expect(findTodos(path.join(tmpDir, "README.md"))).rejects.toThrow(
+      "Not a directory",
+    );
+  });
+
+  it("custom markers override default list entirely", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "mixed.md"),
+      "TODO: old\nHACK: workaround",
+    );
+    const items = await findTodos(tmpDir, { markers: ["HACK"] });
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item).toBeDefined();
+    if (item) {
+      expect(item.marker).toBe("HACK");
+      expect(item.text).toBe("workaround");
+    }
+  });
+
+  it("empty markers array returns no results", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "todos.md"),
+      "TODO: something\nFIXME: broken",
+    );
+    const items = await findTodos(tmpDir, { markers: [] });
+    expect(items).toHaveLength(0);
+  });
+
+  it("case-insensitive by default: matches todo, Todo, TODO", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "case.md"),
+      "todo: lowercase\nTodo: mixed\nTODO: upper",
+    );
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(3);
+    // marker field reflects actual casing found
+    const markers = items.map((i) => i.marker);
+    expect(markers).toContain("todo");
+    expect(markers).toContain("Todo");
+    expect(markers).toContain("TODO");
+  });
+
+  it("case-insensitive by default: fixme matches", async () => {
+    await fs.writeFile(path.join(tmpDir, "lower.md"), "fixme: broken link");
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item).toBeDefined();
+    if (item) {
+      expect(item.marker).toBe("fixme");
+      expect(item.text).toBe("broken link");
+    }
+  });
+
+  it("caseSensitive=true does not match lowercase fixme against FIXME", async () => {
+    await fs.writeFile(path.join(tmpDir, "cs.md"), "fixme: broken link");
+    const items = await findTodos(tmpDir, { caseSensitive: true });
+    expect(items).toHaveLength(0);
+  });
+
+  it("caseSensitive=true matches exact case", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "cs.md"),
+      "FIXME: broken link\nfixme: also broken",
+    );
+    const items = await findTodos(tmpDir, { caseSensitive: true });
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item).toBeDefined();
+    if (item) expect(item.marker).toBe("FIXME");
+  });
+
+  it("matches markers inside fenced code blocks", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "code.md"),
+      ["```", "// TODO: refactor this", "```"].join("\n"),
+    );
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item).toBeDefined();
+    if (item) expect(item.text).toBe("refactor this");
+  });
+
+  it("strips colon after marker from text", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "colon.md"),
+      "TODO: with colon\nTODO without colon",
+    );
+    const items = await findTodos(tmpDir);
+    const withColon = items.find((i) => i.line === 1);
+    const withoutColon = items.find((i) => i.line === 2);
+    expect(withColon).toBeDefined();
+    if (withColon) expect(withColon.text).toBe("with colon");
+    expect(withoutColon).toBeDefined();
+    if (withoutColon) expect(withoutColon.text).toBe("without colon");
+  });
+
+  it("scans nested directories recursively", async () => {
+    const sub = path.join(tmpDir, "sub");
+    await fs.mkdir(sub);
+    await fs.writeFile(path.join(sub, "nested.md"), "TODO: nested item");
+    const items = await findTodos(tmpDir);
+    const nested = items.find((i) => i.file === path.join("sub", "nested.md"));
+    expect(nested).toBeDefined();
+  });
+
+  it("results are sorted by file then line", async () => {
+    await fs.writeFile(path.join(tmpDir, "b.md"), "TODO: b-file");
+    await fs.writeFile(path.join(tmpDir, "a.md"), "TODO: line1\nFIXME: line2");
+    const items = await findTodos(tmpDir);
+    // a.md comes before b.md alphabetically
+    expect(items[0]?.file).toBe("a.md");
+    expect(items[1]?.file).toBe("a.md");
+    expect(items[2]?.file).toBe("b.md");
+  });
+
+  it("skips unreadable files without aborting", async () => {
+    const badFile = path.join(tmpDir, "bad.md");
+    await fs.writeFile(badFile, "TODO: hidden");
+    await fs.chmod(badFile, 0o000);
+    try {
+      const items = await findTodos(tmpDir);
+      expect(Array.isArray(items)).toBe(true);
+    } finally {
+      await fs.chmod(badFile, 0o644);
+    }
+  });
+
+  it("marker appears in HTML comment", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "html.md"),
+      "<!-- TODO: update screenshot -->",
+    );
+    const items = await findTodos(tmpDir);
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item).toBeDefined();
+    if (item) {
+      expect(item.marker).toBe("TODO");
+      expect(item.text).toBe("update screenshot -->");
+    }
   });
 });
