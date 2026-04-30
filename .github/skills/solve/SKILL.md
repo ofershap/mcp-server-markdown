@@ -1,5 +1,12 @@
 ---
-description: Autonomous end-to-end task solver for mcp-server-markdown. Reads a task file, plans the implementation, writes code, reviews it, and verifies the quality gate — all without operator input.
+name: solve
+description: Autonomous end-to-end task solver for mcp-server-markdown. Reads a task file, runs the full spec-driven pipeline, implements the changes, reviews the code, and verifies the quality gate — all without operator input.
+license: MIT
+compatibility: GitHub Copilot CLI
+metadata:
+  author: mcp-server-markdown
+  version: "1.0"
+  generatedBy: "1.0.0"
 ---
 
 Implement the task described in the provided file, end-to-end, autonomously.
