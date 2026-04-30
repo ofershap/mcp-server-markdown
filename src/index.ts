@@ -9,6 +9,7 @@ import {
   listHeadings,
   findCodeBlocks,
   getFrontmatter,
+  findLinks,
 } from "./markdown.js";
 
 const server = new McpServer({
@@ -124,6 +125,40 @@ server.tool(
     return {
       content: [{ type: "text" as const, text: lines.join("\n") }],
     };
+  },
+);
+
+server.tool(
+  "find_links",
+  "Scan all .md files in a directory recursively and return every link as structured JSON. Supports inline links, images, and reference links. Optionally validates local file targets.",
+  {
+    directory: z
+      .string()
+      .describe("Path to the directory to scan (e.g. ./docs)"),
+    validateLocal: z
+      .boolean()
+      .optional()
+      .describe(
+        "Optional: validate local file targets (default false). Reports ok, missing_file, or missing_anchor.",
+      ),
+    includeImages: z
+      .boolean()
+      .optional()
+      .describe("Optional: include image links (default true)"),
+    includeExternal: z
+      .boolean()
+      .optional()
+      .describe("Optional: include external links (default true)"),
+  },
+  async ({ directory, validateLocal, includeImages, includeExternal }) => {
+    const absDir = path.resolve(directory);
+    const links = await findLinks(absDir, {
+      validateLocal,
+      includeImages,
+      includeExternal,
+    });
+    const text = JSON.stringify({ links });
+    return { content: [{ type: "text" as const, text }] };
   },
 );
 
