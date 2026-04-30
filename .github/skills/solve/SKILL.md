@@ -15,6 +15,8 @@ Implement the task described in the provided file, end-to-end, autonomously.
 
 **Autonomy rule**: Complete the entire pipeline without asking the operator any questions. If a detail is ambiguous, make a reasonable assumption, document it in the plan, and continue.
 
+**No commits**: Do not run `git commit` or `git push` at any point. Leave all changes staged or unstaged for the operator to review and commit manually.
+
 ---
 
 ## Step 1 — Read and Analyse the Task
@@ -41,7 +43,7 @@ If the task file is missing or unreadable, report the error and stop — make no
 
 ### 2a. Explore the codebase
 
-Use the `explore` agent (via the task tool with `agent_type: "explore"`, `model: "claude-sonnet-4.6"`) to read:
+Use the `explore` agent (via the task tool with `agent_type: "explore"`, `model: "claude-haiku-4.5"`) to read:
 - `src/markdown.ts` — existing logic functions, patterns, types
 - `src/index.ts` — existing tool registrations, import style, return format
 
