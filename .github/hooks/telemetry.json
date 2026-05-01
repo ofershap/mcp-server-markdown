@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "timeoutSec": 10,
+        "env": {
+          "HOOK_EVENT": "postToolUse"
+        },
+        "bash": "node -e 'const fs=require(\"fs\"); const path=require(\"path\"); const raw=fs.readFileSync(0,\"utf8\")||\"{}\"; let input={}; try{input=JSON.parse(raw);}catch{input={};} const out={event:process.env.HOOK_EVENT,timestamp:Date.now(),toolName:input.toolName??input.tool_name??null,cwd:input.cwd??null}; const p=path.join(process.env.HOME||\"/tmp\",\".copilot\",\"hooks-events.ndjson\"); fs.mkdirSync(path.dirname(p),{recursive:true}); fs.appendFileSync(p,JSON.stringify(out)+\"\\n\");'"
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "type": "command",
+        "timeoutSec": 10,
+        "env": {
+          "HOOK_EVENT": "postToolUseFailure"
+        },
+        "bash": "node -e 'const fs=require(\"fs\"); const path=require(\"path\"); const raw=fs.readFileSync(0,\"utf8\")||\"{}\"; let input={}; try{input=JSON.parse(raw);}catch{input={};} const out={event:process.env.HOOK_EVENT,timestamp:Date.now(),toolName:input.toolName??input.tool_name??null,error:input.error??null,cwd:input.cwd??null}; const p=path.join(process.env.HOME||\"/tmp\",\".copilot\",\"hooks-events.ndjson\"); fs.mkdirSync(path.dirname(p),{recursive:true}); fs.appendFileSync(p,JSON.stringify(out)+\"\\n\");'"
+      }
+    ],
+    "notification": [
+      {
+        "type": "command",
+        "matcher": "permission_prompt|shell_completed|agent_completed|agent_idle",
+        "timeoutSec": 10,
+        "env": {
+          "HOOK_EVENT": "notification"
+        },
+        "bash": "node -e 'const fs=require(\"fs\"); const path=require(\"path\"); const raw=fs.readFileSync(0,\"utf8\")||\"{}\"; let input={}; try{input=JSON.parse(raw);}catch{input={};} const out={event:process.env.HOOK_EVENT,timestamp:Date.now(),notificationType:input.notification_type??null,title:input.title??null,message:input.message??null,cwd:input.cwd??null}; const p=path.join(process.env.HOME||\"/tmp\",\".copilot\",\"hooks-events.ndjson\"); fs.mkdirSync(path.dirname(p),{recursive:true}); fs.appendFileSync(p,JSON.stringify(out)+\"\\n\");'"
+      }
+    ]
+  }
+}

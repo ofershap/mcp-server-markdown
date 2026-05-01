@@ -167,3 +167,21 @@ All four steps must pass. On failure: diagnose the error, fix the code, and reru
 | `list_headings`    | List all headings as a table of contents                   |
 | `find_code_blocks` | Find fenced code blocks, optionally filter by language     |
 | `get_frontmatter`  | Parse YAML frontmatter metadata from a file                |
+
+## Solve Workflow Hardening (judged runs)
+
+For `/solve @task.md` runs, follow this strict contract:
+
+1. **Preflight first**: verify task readability, runtime availability, and hook config presence before implementation.
+2. **No post-start operator dependency**: after `/solve` starts, do not ask for manual choices/confirmations.
+3. **Deterministic fallback only**: use bounded retries and fixed failure-class fallback paths (no ad-hoc branching).
+4. **Hidden-task readiness checklist**: for new tools, require logic + registration + tests + ordered quality gate before success.
+5. **Security-check stage**: explicitly validate path safety, command safety posture, and hook policy correctness.
+6. **Machine-readable run report**: always emit JSON stage outcomes; failure reports must include partial progress and failure class.
+
+### Hooks policy expectations
+
+- Hooks are configured under `.github/hooks/*.json`.
+- Permission control uses an **allowlist + default deny** model.
+- Hook decisions/telemetry are inputs to run reporting and stability diagnostics.
+- Prefer narrow command allowances over broad `/allow-all` behavior in judged automation mode.

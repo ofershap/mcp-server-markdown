@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hooks": {
+    "permissionRequest": [
+      {
+        "type": "command",
+        "matcher": "bash|shell",
+        "timeoutSec": 10,
+        "bash": "node /root/mcp-server-markdown/.github/hooks/permission-policy-hook.cjs",
+        "cwd": "."
+      }
+    ]
+  }
+}

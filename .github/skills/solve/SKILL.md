@@ -17,6 +17,33 @@ Implement the task described in the provided file, end-to-end, autonomously.
 
 **No commits**: Do not run `git commit` or `git push` at any point. Leave all changes staged or unstaged for the operator to review and commit manually.
 
+**Pre-start operator actions (allowed)**:
+
+- Start a new session
+- Ensure hooks are loaded from `.github/hooks/*.json`
+- Confirm task path is correct
+
+**Post-start operator actions (disallowed)**:
+
+- Any manual choice/answer/confirmation for agent progress
+- Manual command confirmation prompts
+- Manual editing to unblock the run
+
+The workflow MUST avoid post-start operator interaction and rely on hook policy + deterministic fallback.
+
+---
+
+## Step 0 — Deterministic preflight (fail-fast)
+
+Before any implementation activity:
+
+1. Verify task file is readable.
+2. Verify repository is writable and toolchain is available (`node`, `pnpm`).
+3. Verify hook policy files exist in `.github/hooks/`.
+4. Initialize run report state (see Step 6).
+
+If any preflight check fails: stop immediately, emit failure run report, make no product code changes.
+
 ---
 
 ## Step 1 — Read and Analyse the Task
@@ -169,6 +196,15 @@ Follow `.github/instructions/tests.instructions.md`. Required test coverage:
 4. **Edge cases** — all specific rules from the task (filtering flags, validation logic, boundary values)
 5. **Robustness** — malformed content doesn't throw, nested directories work, multiple files work
 
+### Hidden-task readiness checklist (mandatory before review)
+
+For new-tool tasks, verify all are true:
+
+- Logic function added/updated in `src/markdown.ts`
+- MCP registration wired in `src/index.ts` with Zod schema + descriptions
+- Tests cover happy path, invalid input, edge cases, robustness
+- Quality gate order is preserved
+
 ---
 
 ## Step 4 — Independent Code Review
@@ -216,9 +252,61 @@ All four steps must pass. If any step fails:
 
 If the quality gate still fails after 2 retry cycles, report a concise error summary — do not ask the operator for input.
 
+### Deterministic fallback map by failure class
+
+- `permission_policy_denied` (from hooks): do not request operator confirmation; either switch to an allowed equivalent command path or fail with explicit denial reason in run report.
+- `setup_or_dependency_failure`: one bounded remediation path (install/fix), max 2 retries.
+- `transient_tool_failure`: retry same step, max 2 retries.
+- `logic_or_test_failure`: fix root cause and rerun gate in order.
+
+No ad-hoc branching outside this map.
+
 ---
 
-## Step 6 — Completion Report
+## Step 6 — Security check + machine-readable run report
+
+Run an explicit security stage before final completion report:
+
+- Validate path handling (`path.resolve` on user paths)
+- Validate no unsafe shell patterns were introduced
+- Validate hook policy remains allowlist/default-deny
+
+Emit machine-readable report JSON (success or failure) to session artifacts:
+
+```json
+{
+  "runId": "string",
+  "changeName": "string",
+  "taskFile": "string",
+  "status": "success|failure",
+  "failureClass": "permission_policy_denied|setup_or_dependency_failure|transient_tool_failure|logic_or_test_failure|null",
+  "retries": {
+    "setup_or_dependency_failure": 0,
+    "transient_tool_failure": 0,
+    "logic_or_test_failure": 0
+  },
+  "stages": [
+    { "name": "preflight", "status": "passed|failed" },
+    { "name": "analysis", "status": "passed|failed|skipped" },
+    { "name": "plan", "status": "passed|failed|skipped" },
+    { "name": "implementation", "status": "passed|failed|skipped" },
+    { "name": "review", "status": "passed|failed|skipped" },
+    { "name": "quality_gate", "status": "passed|failed|skipped" },
+    { "name": "security_check", "status": "passed|failed|skipped" }
+  ],
+  "hookTelemetry": {
+    "permissionDecisions": [],
+    "toolSuccessEvents": 0,
+    "toolFailureEvents": 0
+  }
+}
+```
+
+Failure runs MUST emit partial stage results and denial/failure reasons.
+
+---
+
+## Step 7 — Completion Report
 
 When the quality gate passes, produce this summary:
 

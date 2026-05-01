@@ -167,3 +167,11 @@ expect(value).toBeGreaterThan(n);
 expect(fn).rejects.toThrow(); // async error
 expect(fn).resolves.toBeDefined(); // async success
 ```
+
+## Solve-run verification expectations
+
+Tests added by `/solve` should help prove hidden-task readiness:
+
+- cover registration/contract expectations indirectly through behavior
+- include at least one robustness edge case that demonstrates no regression
+- keep failures diagnostic so automated run reports can map to failure class

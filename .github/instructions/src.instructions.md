@@ -109,3 +109,12 @@ import {
   myNewFunction, // add here
 } from "./markdown.js";
 ```
+
+## Solve-run readiness reminders (for hidden/open tasks)
+
+When `/solve` implements a new tool, ensure workflow evidence can confirm:
+
+- Logic contract is implemented in `src/markdown.ts`
+- Tool wiring is complete in `src/index.ts` with explicit Zod descriptions
+- No unsafe path handling shortcuts were introduced
+- Changes are compatible with deterministic quality-gate reruns
