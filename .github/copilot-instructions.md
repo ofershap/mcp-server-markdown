@@ -39,6 +39,8 @@ package.json        # Scripts: build, test, lint, typecheck, format
 - **Lint**: eslint (typescript-eslint strict + stylistic) + prettier
 - **Git hooks**: husky + lint-staged
 
+> **Scripting rule**: Node.js is the only guaranteed runtime. Always use `node` (or `pnpm`/`npx`) for any scripting, one-off tests, or automation. Never use `python`, `python3`, `ruby`, or other interpreted runtimes.
+
 ## Code Style Conventions
 
 ### Imports

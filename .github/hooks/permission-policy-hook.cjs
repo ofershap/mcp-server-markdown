@@ -53,6 +53,8 @@ const deny = [
   /\bwget\b.*\|\s*(?:bash|sh)\b/,
   /\bmkfs\b/,
   /\bdd\b.*\bof=/,
+  /\bpython[23]?\b/,  // Node.js is the project runtime; use node for scripting
+  /\bpip[23]?\b/,
 ];
 
 if (deny.some((r) => r.test(cmd))) {
