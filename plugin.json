@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "mcp-server-markdown",
+  "version": "1.0.1",
+  "description": "MCP server for local markdown: search, extract sections, headings, code blocks, and frontmatter.",
+  "author": {
+    "name": "Ofer Shapira",
+    "url": "https://github.com/ofershap"
+  },
+  "homepage": "https://github.com/ofershap/mcp-server-markdown",
+  "repository": "https://github.com/ofershap/mcp-server-markdown",
+  "license": "MIT",
+  "keywords": [
+    "agent-plugins",
+    "mcp",
+    "markdown",
+    "docs",
+    "search"
+  ]
+}

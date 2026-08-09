@@ -1,6 +1,6 @@
 ---
 name: markdown-search
-description: Search, navigate, and extract content from local markdown files via MCP. Use when working with documentation or knowledge bases.
+description: Search and navigate local markdown via MCP. Use when the user asks to search docs, find a README section, list headings/TOC, extract code examples by language, read frontmatter, or grep internal wikis and ADRs on disk.
 ---
 
 # Markdown Search via MCP
@@ -32,3 +32,10 @@ Use this skill when you need to search documentation, extract sections, list hea
 - `find_code_blocks` with `language: "typescript"` filters to only TS examples
 - `search_docs` is case-insensitive and returns up to 50 matches with surrounding context
 - Unlike the filesystem MCP, this server understands markdown structure (headings, sections, code fences)
+
+## Error Scenarios
+
+- No matches from `search_docs`: widen the query, check the directory path, or confirm files use `.md` extension
+- `get_section` not found: heading text must match (including `#` level); use `list_headings` first
+- Permission or missing path errors: verify the directory exists and is readable on the host running the MCP server
+- More than 50 search hits: refine the query or search a smaller subdirectory

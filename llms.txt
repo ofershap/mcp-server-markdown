@@ -1,0 +1,34 @@
+# mcp-server-markdown
+
+> MCP server for local markdown: search, extract sections, headings, code blocks, and frontmatter.
+
+- Homepage: https://github.com/ofershap/mcp-server-markdown
+- License: MIT
+- Spec: Agent Plugins 1.0.0 (https://agent-plugins.org)
+- MCP: Model Context Protocol stdio server via npx
+
+## Install
+
+### MCP (Cursor / VS Code / Claude Desktop)
+Use npx package `mcp-server-markdown` with stdio transport.
+
+### Agent Plugin (Cursor local)
+1. Clone https://github.com/ofershap/mcp-server-markdown
+2. Copy or symlink the repo into `~/.cursor/plugins/local/mcp-server-markdown`
+3. Reload Cursor Window
+4. Confirm skills and MCP components load under Customize > Plugins
+
+## Package layout
+- `plugin.json` - Agent Plugins manifest
+- `mcp.json` - portable MCP config (when present)
+- `skills/` - Agent Skills with trigger-rich descriptions
+
+## FAQ
+Q: Is this an Agent Plugin or only an MCP server?
+A: Both. The repo is an Agent Plugins 1.0.0 package that bundles skills and MCP configuration. The runtime remains a standard MCP stdio server published on npm.
+
+Q: Does Agent Plugins replace the official MCP registry entry?
+A: No. `server.json` / npm publishing stay the source of truth for MCP discovery. Agent Plugins is a packaging layer for skills + MCP together.
+
+Q: Are hooks, rules, and subagents portable?
+A: Not in Agent Plugins v1. Only skills and MCP servers are portable. Client-specific features stay in client namespaces.

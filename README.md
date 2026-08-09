@@ -5,6 +5,7 @@
 [![CI](https://github.com/ofershap/mcp-server-markdown/actions/workflows/ci.yml/badge.svg)](https://github.com/ofershap/mcp-server-markdown/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Agent Plugins](https://img.shields.io/badge/Agent_Plugins-1.0.0-0ea5e9.svg)](https://agent-plugins.org)
 
 Search, navigate, and extract content from local markdown files. Full-text search, section extraction, heading navigation, code block discovery, and frontmatter parsing.
 
@@ -13,6 +14,12 @@ npx mcp-server-markdown
 ```
 
 > Works with Claude Desktop, Cursor, VS Code Copilot, and any MCP client. Reads local `.md` files, no auth needed.
+
+<p align="center">
+  <a href="https://cursor.com/en/install-mcp?name=markdown&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1jcC1zZXJ2ZXItbWFya2Rvd24iXX0="><img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor" height="32" /></a>
+  &nbsp;
+  <a href="vscode:mcp/install?%7B%22name%22%3A%22markdown%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22mcp-server-markdown%22%5D%7D"><img src="https://img.shields.io/badge/Add_to_VS_Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Add to VS Code" /></a>
+</p>
 
 ![MCP server for searching and navigating markdown documentation](assets/demo.gif)
 
@@ -90,6 +97,36 @@ Add to user settings or `.vscode/mcp.json`:
 - "Find all TypeScript code blocks in the docs"
 - "What's the frontmatter metadata in this file?"
 - "Give me the table of contents for our architecture docs"
+
+## Agent Plugins
+
+This repo is an [Agent Plugins](https://agent-plugins.org) 1.0.0 package: `plugin.json`, portable `mcp.json`, and `skills/` ship together with the MCP server.
+
+For Cursor, clone the repo and copy or symlink it to `~/.cursor/plugins/local/mcp-server-markdown`, then reload the window. Skills and MCP show up under Customize > Plugins.
+
+The Cursor and VS Code install buttons above still work: they add the same `npx -y mcp-server-markdown` stdio server as manual JSON.
+
+## FAQ
+
+### What is mcp-server-markdown?
+
+An MCP server that searches and navigates local `.md` files: full-text search, sections by heading, TOC, code blocks, and YAML frontmatter.
+
+### How is this different from Context7?
+
+Context7 pulls published library docs from npm. This server indexes markdown already on your disk (wikis, ADRs, internal guides).
+
+### How is this different from the filesystem MCP?
+
+Filesystem tools read raw files. This server understands headings, sections, fenced code, and frontmatter.
+
+### Can I install it as an Agent Plugin in Cursor?
+
+Yes. Use `~/.cursor/plugins/local/mcp-server-markdown` so the bundled `markdown-search` skill loads with the MCP config.
+
+### Do I need API keys?
+
+No. Paths are local; the agent passes directory and file paths to the tools.
 
 ## Development
 
