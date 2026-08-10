@@ -4,10 +4,7 @@
     "markdown": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "-y",
-        "mcp-server-markdown"
-      ]
+      "args": ["-y", "mcp-server-markdown"]
     }
   }
 }

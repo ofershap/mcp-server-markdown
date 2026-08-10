@@ -10,11 +10,5 @@
   "homepage": "https://github.com/ofershap/mcp-server-markdown",
   "repository": "https://github.com/ofershap/mcp-server-markdown",
   "license": "MIT",
-  "keywords": [
-    "agent-plugins",
-    "mcp",
-    "markdown",
-    "docs",
-    "search"
-  ]
+  "keywords": ["agent-plugins", "mcp", "markdown", "docs", "search"]
 }

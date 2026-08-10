@@ -2,7 +2,7 @@
   "name": "mcp-server-markdown",
   "mcpName": "io.github.ofershap/markdown",
   "version": "1.0.1",
-  "description": "MCP server for markdown files \u2014 search, extract sections, list headings, find code blocks across your docs directory",
+  "description": "MCP server for markdown files — search, extract sections, list headings, find code blocks across your docs directory",
   "type": "module",
   "bin": {
     "mcp-server-markdown": "./dist/index.js"
