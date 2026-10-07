@@ -220,3 +220,56 @@ describe("getFrontmatter", () => {
     expect(fm).toBeNull();
   });
 });
+
+describe("headings outside fenced code blocks", () => {
+  it.each([
+    ["backticks", "```bash", "```"],
+    ["tildes", "~~~python", "~~~"],
+    ["long fence", "````markdown", "````"],
+    ["indented fence", "   ```bash", "   ```"],
+    ["CRLF", "```bash\r", "```\r"],
+  ])(
+    "ignores comments in %s fences and preserves section content",
+    async (_, open, close) => {
+      const file = path.join(tmpDir, "fenced.md");
+      const lines = [
+        "# Real H1",
+        "",
+        "## Section",
+        "before",
+        open,
+        "# Fake H1",
+        "## Fake H2",
+        "```",
+        "# Still code",
+        close,
+        "after",
+        "## Next",
+        "done",
+      ];
+      // An equal-length backtick fence closes a three-backtick block.
+      if (open.trim().startsWith("```") && !open.trim().startsWith("````"))
+        lines[7] = "~~ wrong fence";
+      await fs.writeFile(file, lines.join("\n"));
+      expect(await listHeadings(file)).toEqual([
+        { level: 1, text: "Real H1", line: 1 },
+        { level: 2, text: "Section", line: 3 },
+        { level: 2, text: "Next", line: 12 },
+      ]);
+      expect(await getSection(file, "Fake H1")).toBe("");
+      expect(await getSection(file, "Section")).toBe(
+        lines.slice(2, 11).join("\n"),
+      );
+    },
+  );
+
+  it("keeps headings inside an unclosed fence hidden", async () => {
+    const file = path.join(tmpDir, "unclosed.md");
+    await fs.writeFile(file, "# Real\n```bash\n# Fake\n## Also fake");
+    expect(await listHeadings(file)).toEqual([
+      { level: 1, text: "Real", line: 1 },
+    ]);
+    expect(await getSection(file, "Fake")).toBe("");
+    expect(await getSection(file, "Real")).toContain("## Also fake");
+  });
+});
