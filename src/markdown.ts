@@ -72,63 +72,26 @@ export async function searchDocs(
   return results;
 }
 
-export async function getSection(
-  filePath: string,
-  heading: string,
-): Promise<string> {
-  const absPath = path.resolve(filePath);
-  const content = await fs.readFile(absPath, "utf-8");
-  const lines = content.split("\n");
-  const lowerHeading = heading.toLowerCase().trim();
-  const headingRe = /^(#{1,6})\s+(.+)$/;
-  let targetLevel = 0;
-  let startLine = -1;
-  let endLine = lines.length;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const match = line !== undefined ? line.match(headingRe) : null;
-    if (match && match[1] !== undefined && match[2] !== undefined) {
-      const level = match[1].length;
-      const text = match[2].trim().toLowerCase();
-      if (text === lowerHeading) {
-        targetLevel = level;
-        startLine = i;
-        break;
-      }
-    }
-  }
-
-  if (startLine < 0) {
-    return "";
-  }
-
-  for (let i = startLine + 1; i < lines.length; i++) {
-    const line = lines[i];
-    const match = line !== undefined ? line.match(headingRe) : null;
-    if (match && match[1] !== undefined) {
-      const level = match[1].length;
-      if (level <= targetLevel) {
-        endLine = i;
-        break;
-      }
-    }
-  }
-
-  return lines.slice(startLine, endLine).join("\n").trim();
-}
-
-export async function listHeadings(filePath: string): Promise<Heading[]> {
-  const absPath = path.resolve(filePath);
-  const content = await fs.readFile(absPath, "utf-8");
-  const lines = content.split("\n");
+// Only headings outside fenced code are eligible for navigation.
+function parseHeadings(lines: string[]): Heading[] {
   const headings: Heading[] = [];
-  const headingRe = /^(#{1,6})\s+(.+)$/;
-
+  let fence: { marker: string; length: number } | undefined;
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const match = line !== undefined ? line.match(headingRe) : null;
-    if (match && match[1] !== undefined && match[2] !== undefined) {
+    const line = (lines[i] ?? "").replace(/\r$/, "");
+    if (fence) {
+      const close = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*\r?$/);
+      if (close?.[1]?.[0] === fence.marker && close[1].length >= fence.length) {
+        fence = undefined;
+      }
+      continue;
+    }
+    const open = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    if (open?.[1] && (open[1][0] !== "`" || !open[2]?.includes("`"))) {
+      fence = { marker: open[1].charAt(0), length: open[1].length };
+      continue;
+    }
+    const match = line.match(/^(#{1,6})\s+(.+)$/);
+    if (match?.[1] && match[2]) {
       headings.push({
         level: match[1].length,
         text: match[2].trim(),
@@ -137,6 +100,32 @@ export async function listHeadings(filePath: string): Promise<Heading[]> {
     }
   }
   return headings;
+}
+
+export async function getSection(
+  filePath: string,
+  heading: string,
+): Promise<string> {
+  const content = await fs.readFile(path.resolve(filePath), "utf-8");
+  const lines = content.split("\n");
+  const headings = parseHeadings(lines);
+  const lowerHeading = heading.toLowerCase().trim();
+  const target = headings.find(
+    (item) => item.text.toLowerCase() === lowerHeading,
+  );
+  if (!target) return "";
+  const next = headings.find(
+    (item) => item.line > target.line && item.level <= target.level,
+  );
+  return lines
+    .slice(target.line - 1, next ? next.line - 1 : lines.length)
+    .join("\n")
+    .trim();
+}
+
+export async function listHeadings(filePath: string): Promise<Heading[]> {
+  const content = await fs.readFile(path.resolve(filePath), "utf-8");
+  return parseHeadings(content.split("\n"));
 }
 
 export async function findCodeBlocks(
